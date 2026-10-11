@@ -1400,47 +1400,189 @@ span {
 }
 
 
-/* Mengubah grid menjadi flexbox yang bisa di-scroll ke samping */
+/* =========================================
+   3D Coverflow Carousel (Anggota Karang Taruna)
+   Efek 3D Coverflow dengan putaran melingkar tak terbatas (Infinite Loop)
+   ========================================= */
 
-.members-grid {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 2.5rem;
+.members-carousel-container {
+    position: relative;
     width: 100%;
-    padding: 3rem 4.5rem;
-    /* Efek jepret (snap) saat digeser di HP */
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    /* Menyembunyikan scrollbar agar rapi */
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
+    margin-bottom: 3.5rem;
+    user-select: none;
 }
 
-.members-grid::-webkit-scrollbar {
-    display: none;
-    /* Chrome, Safari and Opera */
+.carousel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0 1rem;
 }
 
-
-/* Memastikan kartu tidak menyusut dan pas di posisinya */
-
-.members-grid .chairman-wrapper {
-    flex: 0 0 auto;
-    scroll-snap-align: start;
+.carousel-header .members-title {
+    margin: 0;
+    text-align: left;
 }
 
-
-/* Mengunci ukuran kartu agar tidak melebar/gepeng */
-
-.members-grid .team-card {
-    width: 240px;
+.carousel-counter {
+    background: rgba(79, 70, 229, 0.08);
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.35rem 0.95rem;
+    border-radius: 999px;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(79, 70, 229, 0.15);
 }
 
-.members-grid .member-img {
-    height: 240px;
+.coverflow-carousel {
+    position: relative;
+    width: 100%;
+    height: 560px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 2.5rem 0;
+    touch-action: pan-y;
+    background: radial-gradient(ellipse at 50% 50%, rgba(79, 70, 229, 0.06) 0%, rgba(79, 70, 229, 0) 70%);
+}
+
+.carousel-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    perspective: 1200px;
+    transform-style: preserve-3d;
+}
+
+/* Kartu di dalam Stage Carousel */
+.carousel-stage .chairman-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+                opacity 0.45s ease,
+                filter 0.45s ease;
+    will-change: transform, opacity, filter;
+    cursor: pointer;
+    transform-origin: center center;
+}
+
+.carousel-stage .team-card {
+    width: 260px;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.4s ease, border-color 0.4s ease, transform 0.4s ease;
+}
+
+.carousel-stage .member-img {
+    height: 250px;
+}
+
+/* Spotlight untuk Kartu Tengah (Aktif) */
+.carousel-stage .chairman-wrapper.is-center {
+    cursor: default;
+}
+
+.carousel-stage .chairman-wrapper.is-center .team-card {
+    box-shadow: 0 24px 50px rgba(79, 70, 229, 0.24), 0 0 35px rgba(79, 70, 229, 0.16);
+    border: 2px solid rgba(79, 70, 229, 0.45);
+}
+
+.carousel-stage .chairman-wrapper.is-center .member-socials {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+}
+
+/* Sembunyikan emoji dan tombol medsos pada kartu samping agar hanya mekar di kartu tengah */
+.carousel-stage .chairman-wrapper:not(.is-center) .floating-emoji {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.carousel-stage .chairman-wrapper:not(.is-center) .member-socials {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(20px) !important;
+}
+
+/* Efek Tombol Navigasi Kiri & Kanan */
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    color: var(--text-main);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 30;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.carousel-nav-btn:hover {
+    background: var(--gradient-primary);
+    color: var(--white);
+    transform: translateY(-50%) scale(1.12);
+    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.38);
+}
+
+.carousel-nav-btn:active {
+    transform: translateY(-50%) scale(0.96);
+}
+
+.carousel-nav-btn.prev {
+    left: 20px;
+}
+
+.carousel-nav-btn.next {
+    right: 20px;
+}
+
+/* Indikator Titik (Dots) */
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+    flex-wrap: wrap;
+    padding: 0 1rem;
+}
+
+.carousel-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.35);
+    border: none;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    padding: 0;
+}
+
+.carousel-dot:hover {
+    background: rgba(79, 70, 229, 0.6);
+    transform: scale(1.2);
+}
+
+.carousel-dot.active {
+    width: 28px;
+    border-radius: 999px;
+    background: var(--gradient-primary);
+    box-shadow: 0 2px 10px rgba(79, 70, 229, 0.4);
 }
 
 
@@ -1787,18 +1929,36 @@ span {
         margin: 3.5rem 0 1.5rem;
     }
 
-    .members-grid {
-        gap: 1.5rem;
-        padding: 2rem 2.5rem;
+    .coverflow-carousel {
+        height: 450px;
+        padding: 1.5rem 0;
     }
 
-    .members-grid .team-card {
+    .carousel-stage .team-card {
         width: 220px;
-        padding: 1.2rem;
     }
 
-    .members-grid .member-img {
-        height: 200px;
+    .carousel-stage .member-img {
+        height: 210px;
+    }
+
+    .carousel-nav-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 1.25rem;
+    }
+
+    .carousel-nav-btn.prev {
+        left: 10px;
+    }
+
+    .carousel-nav-btn.next {
+        right: 10px;
+    }
+
+    .carousel-counter {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.8rem;
     }
 
     .chairman-wrapper.shift-left {
@@ -1971,11 +2131,11 @@ span {
         max-width: 100%;
     }
 
-    .members-grid .team-card {
+    .carousel-stage .team-card {
         width: 200px;
     }
 
-    .members-grid .member-img {
+    .carousel-stage .member-img {
         height: 190px;
     }
 
