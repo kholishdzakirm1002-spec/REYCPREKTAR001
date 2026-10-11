@@ -1176,7 +1176,7 @@ span {
     position: absolute;
     top: 50%;
     left: 50%;
-    z-index: 2; /* Tepat di belakang card (2 < 5) */
+    z-index: 2; /* Awalnya di belakang card (2 < 5) */
     opacity: 0;
     pointer-events: none;
     transform: translate(-50%, -50%) scale(0.2);
@@ -1186,18 +1186,32 @@ span {
 
 .emoji-inner {
     display: inline-block;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.95));
 }
 
 .chairman-wrapper:hover .floating-emoji,
 .chairman-wrapper.active .floating-emoji {
     opacity: 1;
-    transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px))) scale(1);
+    z-index: 12; /* Mengambang bebas di atas batas kartu agar utuh tidak terpotong */
+    transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px))) scale(1.15);
 }
 
 .chairman-wrapper:hover .emoji-inner,
 .chairman-wrapper.active .emoji-inner {
     animation: floatContinuous 4s ease-in-out infinite;
+}
+
+/* State EMOJI TERSEMBUNYI (IN) - Menarik emoji masuk ke belakang kartu */
+.chairman-wrapper.emoji-hidden .floating-emoji {
+    opacity: 0 !important;
+    transform: translate(-50%, -50%) scale(0.15) !important;
+    pointer-events: none !important;
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease !important;
+}
+
+/* Efek sentuhan/klik taktil pada kartu */
+.chairman-wrapper:active .team-card {
+    transform: scale(0.98);
 }
 
 @keyframes floatContinuous {
@@ -1484,7 +1498,11 @@ span {
 
 /* Spotlight untuk Kartu Tengah (Aktif) */
 .carousel-stage .chairman-wrapper.is-center {
-    cursor: default;
+    cursor: pointer;
+}
+
+.carousel-stage .chairman-wrapper.is-center:active .team-card {
+    transform: scale(0.97);
 }
 
 .carousel-stage .chairman-wrapper.is-center .team-card {
@@ -1496,6 +1514,10 @@ span {
     opacity: 1 !important;
     pointer-events: auto !important;
     transform: translateY(0) !important;
+}
+
+.carousel-stage .chairman-wrapper.is-center .floating-emoji {
+    z-index: 30 !important;
 }
 
 /* Sembunyikan emoji dan tombol medsos pada kartu samping agar hanya mekar di kartu tengah */
