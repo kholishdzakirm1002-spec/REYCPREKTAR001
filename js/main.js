@@ -120,11 +120,10 @@ function initEmojiWrapper(id) {
 }
 
 // ==========================================
-// Logika Geser Kartu Tetangga (Neighbor Shift)
-// Saat emoji muncul, kartu sebelah otomatis bergeser memberi ruang
+// Logika Geser Kartu Tetangga (Khusus Pengurus di Struktur Organisasi)
 // ==========================================
 function setupCardNeighborShifting() {
-    const wrappers = document.querySelectorAll('.chairman-wrapper');
+    const wrappers = document.querySelectorAll('.team-hierarchy .chairman-wrapper');
 
     // Fungsi pembantu untuk menggeser kartu tetangga
     function updateShifts(parent, activeOrHoveredWrapper) {
@@ -184,8 +183,8 @@ function setupCardNeighborShifting() {
 
             const wasActive = wrapper.classList.contains('active');
 
-            // Reset kartu lain di seluruh halaman agar fokus ke kartu yang baru diklik
-            document.querySelectorAll('.chairman-wrapper').forEach(other => {
+            // Reset kartu lain di seluruh pengurus agar fokus ke kartu yang baru diklik
+            document.querySelectorAll('.team-hierarchy .chairman-wrapper').forEach(other => {
                 if (other !== wrapper) {
                     other.classList.remove('active', 'shift-left', 'shift-right');
                 }
@@ -201,8 +200,8 @@ function setupCardNeighborShifting() {
         });
     });
 
-    // Reset posisi kartu jika kursor mouse keluar dari area grid/level (kecuali jika ada kartu aktif)
-    document.querySelectorAll('.members-grid, .team-level').forEach(container => {
+    // Reset posisi kartu jika kursor mouse keluar dari area level pengurus
+    document.querySelectorAll('.team-hierarchy .team-level').forEach(container => {
         if (!container.dataset.containerLeaveInit) {
             container.dataset.containerLeaveInit = 'true';
             container.addEventListener('mouseleave', () => {
@@ -216,12 +215,12 @@ function setupCardNeighborShifting() {
         }
     });
 
-    // Reset kartu aktif jika klik di area kosong di luar kartu
+    // Reset kartu aktif jika klik di area kosong di luar kartu pengurus
     if (!document.body.dataset.outsideClickInit) {
         document.body.dataset.outsideClickInit = 'true';
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.chairman-wrapper')) {
-                document.querySelectorAll('.chairman-wrapper').forEach(card => {
+                document.querySelectorAll('.team-hierarchy .chairman-wrapper').forEach(card => {
                     card.classList.remove('active', 'shift-left', 'shift-right');
                 });
             }
@@ -229,44 +228,281 @@ function setupCardNeighborShifting() {
     }
 }
 
-// Inisialisasi otomatis untuk SEMUA kartu pengurus
-document.querySelectorAll('.chairman-wrapper').forEach((wrapper, index) => {
+// ==========================================
+// 3D Coverflow Carousel (Infinite Loop / Muter)
+// Tampilan Satu per Satu Kartu Anggota (Seperti Contoh Nitro Showcase)
+// ==========================================
+function initCoverflowCarousel(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const stage = container.querySelector('.carousel-stage');
+    if (!stage) return;
+
+    const cards = Array.from(stage.querySelectorAll('.chairman-wrapper'));
+    const total = cards.length;
+    if (total === 0) return;
+
+    let currentIndex = parseInt(container.dataset.currentIndex || '0', 10);
+    if (isNaN(currentIndex) || currentIndex < 0 || currentIndex >= total) {
+        currentIndex = 0;
+    }
+    container.dataset.currentIndex = currentIndex;
+
+    // Pastikan ID dan inisialisasi emoji ada untuk setiap kartu
+    cards.forEach((card, index) => {
+        if (!card.id) {
+            card.id = `${containerId}-card-${index}`;
+        }
+        initEmojiWrapper(card.id);
+    });
+
+    // Inisialisasi Dots
+    const dotsContainer = container.querySelector('.carousel-dots');
+    if (dotsContainer && !dotsContainer.dataset.initDots) {
+        dotsContainer.dataset.initDots = 'true';
+        dotsContainer.innerHTML = '';
+        for (let i = 0; i < total; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'carousel-dot' + (i === currentIndex ? ' active' : '');
+            dot.setAttribute('aria-label', `Lihat anggota ke-${i + 1}`);
+            dot.addEventListener('click', () => {
+                goToIndex(i);
+            });
+            dotsContainer.appendChild(dot);
+        }
+    }
+
+    function render() {
+        const isMobile = window.innerWidth <= 768;
+        const isTablet = window.innerWidth <= 1024 && window.innerWidth > 768;
+
+        const stepX = isMobile ? 150 : (isTablet ? 195 : 240);
+        const step2X = isMobile ? 245 : (isTablet ? 340 : 425);
+        const step3X = isMobile ? 320 : (isTablet ? 470 : 590);
+
+        cards.forEach((card, i) => {
+            let diff = i - currentIndex;
+            // Jalur melingkar terpendek (infinite loop modulo)
+            if (diff > total / 2) diff -= total;
+            if (diff < -total / 2) diff += total;
+
+            card.classList.remove('active', 'is-center', 'is-neighbor');
+
+            if (diff === 0) {
+                // Kartu Tengah (Utama / Spotlight)
+                card.classList.add('active', 'is-center');
+                card.style.transform = 'translate(-50%, -50%) scale(1.05) translateZ(60px)';
+                card.style.opacity = '1';
+                card.style.zIndex = '15';
+                card.style.filter = 'none';
+                card.style.pointerEvents = 'auto';
+                card.style.visibility = 'visible';
+            } else if (Math.abs(diff) === 1) {
+                // Kartu Tetangga Sebelah Kiri / Kanan
+                card.classList.add('is-neighbor');
+                const sign = diff > 0 ? 1 : -1;
+                const x = sign * stepX;
+                const rotateY = sign * (isMobile ? -14 : -20);
+                const scale = isMobile ? 0.78 : 0.85;
+                card.style.transform = `translate(calc(-50% + ${x}px), -50%) scale(${scale}) rotateY(${rotateY}deg)`;
+                card.style.opacity = isMobile ? '0.55' : '0.68';
+                card.style.zIndex = '10';
+                card.style.filter = 'brightness(0.85)';
+                card.style.pointerEvents = 'auto';
+                card.style.visibility = 'visible';
+            } else if (Math.abs(diff) === 2) {
+                // Kartu Sebelah Tingkat 2
+                const sign = diff > 0 ? 1 : -1;
+                const x = sign * step2X;
+                const rotateY = sign * (isMobile ? -22 : -28);
+                const scale = isMobile ? 0.62 : 0.72;
+                card.style.transform = `translate(calc(-50% + ${x}px), -50%) scale(${scale}) rotateY(${rotateY}deg)`;
+                card.style.opacity = isMobile ? '0.2' : '0.4';
+                card.style.zIndex = '5';
+                card.style.filter = 'brightness(0.65)';
+                card.style.pointerEvents = isMobile ? 'none' : 'auto';
+                card.style.visibility = 'visible';
+            } else if (Math.abs(diff) === 3 && !isMobile) {
+                // Kartu Sebelah Tingkat 3 (Desktop/Layar Lebar)
+                const sign = diff > 0 ? 1 : -1;
+                const x = sign * step3X;
+                const rotateY = sign * -32;
+                const scale = 0.58;
+                card.style.transform = `translate(calc(-50% + ${x}px), -50%) scale(${scale}) rotateY(${rotateY}deg)`;
+                card.style.opacity = '0.12';
+                card.style.zIndex = '2';
+                card.style.filter = 'brightness(0.5)';
+                card.style.pointerEvents = 'auto';
+                card.style.visibility = 'visible';
+            } else {
+                // Kartu di Belakang (Sembunyi)
+                const sign = diff > 0 ? 1 : -1;
+                card.style.transform = `translate(calc(-50% + ${sign * step3X}px), -50%) scale(0.4)`;
+                card.style.opacity = '0';
+                card.style.zIndex = '0';
+                card.style.pointerEvents = 'none';
+                card.style.visibility = 'hidden';
+            }
+        });
+
+        // Update counter teks (misal: 1 / 13)
+        const counter = container.querySelector('.carousel-counter');
+        if (counter) {
+            counter.textContent = `${currentIndex + 1} / ${total}`;
+        }
+
+        // Update dots
+        if (dotsContainer) {
+            const dots = dotsContainer.querySelectorAll('.carousel-dot');
+            dots.forEach((dot, idx) => {
+                if (idx === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+    }
+
+    function goToIndex(index) {
+        currentIndex = ((index % total) + total) % total;
+        container.dataset.currentIndex = currentIndex;
+        render();
+    }
+
+    function next() {
+        goToIndex(currentIndex + 1);
+    }
+
+    function prev() {
+        goToIndex(currentIndex - 1);
+    }
+
+    // Pasang Event Tombol & Interaksi hanya sekali
+    if (!container.dataset.carouselEventsInit) {
+        container.dataset.carouselEventsInit = 'true';
+
+        const prevBtn = container.querySelector('.carousel-nav-btn.prev');
+        const nextBtn = container.querySelector('.carousel-nav-btn.next');
+        if (prevBtn) prevBtn.addEventListener('click', prev);
+        if (nextBtn) nextBtn.addEventListener('click', next);
+
+        // Navigasi Keyboard (Panah Kiri & Kanan) saat kursor di area karusel
+        container.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                prev();
+            } else if (e.key === 'ArrowRight') {
+                next();
+            }
+        });
+
+        // Sentuhan Geser (Touch Swipe) dengan pencegahan ghost click
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isTouching = false;
+        let hasSwiped = false;
+
+        stage.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isTouching = true;
+            hasSwiped = false;
+        }, { passive: true });
+
+        stage.addEventListener('touchmove', (e) => {
+            if (!isTouching) return;
+            const diffX = e.touches[0].clientX - touchStartX;
+            const diffY = e.touches[0].clientY - touchStartY;
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 12) {
+                hasSwiped = true;
+            }
+        }, { passive: true });
+
+        stage.addEventListener('touchend', (e) => {
+            if (!isTouching) return;
+            isTouching = false;
+            const endX = e.changedTouches[0].clientX;
+            const diffX = endX - touchStartX;
+            if (Math.abs(diffX) > 38) {
+                if (diffX < 0) {
+                    next();
+                } else {
+                    prev();
+                }
+            }
+            setTimeout(() => {
+                hasSwiped = false;
+            }, 60);
+        });
+
+        // Mouse Drag untuk Desktop dengan pencegahan ghost click
+        let dragStartX = 0;
+        let isDragging = false;
+        let hasDragged = false;
+
+        stage.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || e.target.closest('a') || e.target.closest('.member-socials')) return;
+            dragStartX = e.clientX;
+            isDragging = true;
+            hasDragged = false;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            if (Math.abs(e.clientX - dragStartX) > 10) {
+                hasDragged = true;
+            }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            const diffX = e.clientX - dragStartX;
+            if (Math.abs(diffX) > 40) {
+                if (diffX < 0) {
+                    next();
+                } else {
+                    prev();
+                }
+            }
+            setTimeout(() => {
+                hasDragged = false;
+            }, 60);
+        });
+
+        // Klik kartu sebelah untuk geser ke tengah
+        cards.forEach((card, i) => {
+            card.addEventListener('click', (e) => {
+                if (hasDragged || hasSwiped) return;
+                if (e.target.closest('a') || e.target.closest('.member-socials')) return;
+                const current = parseInt(container.dataset.currentIndex || '0', 10);
+                if (i !== current) {
+                    goToIndex(i);
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            render();
+        });
+    }
+
+    render();
+}
+
+// Inisialisasi otomatis untuk kartu pengurus & karusel anggota saat awal dimuat
+document.querySelectorAll('.team-hierarchy .chairman-wrapper').forEach((wrapper, index) => {
     if (!wrapper.id) {
         wrapper.id = 'emoji-wrapper-' + index;
     }
     initEmojiWrapper(wrapper.id);
 });
 setupCardNeighborShifting();
-// Modal Logic untuk Detail Program
-// ==========================================
 
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('active');
-        // Kunci scroll halaman belakang
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-        // Buka kunci scroll halaman belakang
-        document.body.style.overflow = 'auto';
-    }
-}
-
-// Tutup modal jika user mengklik area gelap di luar kotak putih
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', function(e) {
-        if (e.target === this) {
-            this.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-    });
-});
+// Siapkan karusel anggota sejak awal
+initCoverflowCarousel('carousel-laki');
+initCoverflowCarousel('carousel-perempuan');
 
 // ==========================================
 // Auto-Slider Gambar Modal Olahraga (Smooth & Preload)
@@ -367,12 +603,11 @@ function toggleMembers() {
         memberSection.style.display = 'block';
         btn.innerHTML = '<i class="ph-bold ph-caret-up"></i> Sembunyikan Anggota';
 
-        // Panggil ulang inisialisasi emoji dan pergeseran kartu saat anggota ditampilkan
-        document.querySelectorAll('#daftar-anggota .chairman-wrapper').forEach((wrapper, index) => {
-            if (!wrapper.id) wrapper.id = 'member-emoji-' + index;
-            initEmojiWrapper(wrapper.id);
-        });
-        setupCardNeighborShifting();
+        // Inisialisasi ulang coverflow carousels saat wadah anggota ditampilkan
+        setTimeout(() => {
+            initCoverflowCarousel('carousel-laki');
+            initCoverflowCarousel('carousel-perempuan');
+        }, 50);
     } else {
         memberSection.style.display = 'none';
         btn.innerHTML = '<i class="ph-fill ph-users-three"></i> Lihat Anggota Lainnya';
