@@ -322,8 +322,19 @@
             <!-- Wadah Daftar Anggota (Awalnya disembunyikan) -->
             <div id="daftar-anggota" style="display: none; padding-top: 2rem;">
 
-                <h3 class="members-title">Anggota Laki-Laki</h3>
-                <div class="members-grid">
+                <!-- Karusel 3D Coverflow Anggota Laki-Laki -->
+                <div class="members-carousel-container" id="carousel-laki">
+                    <div class="carousel-header">
+                        <h3 class="members-title">Anggota Laki-Laki</h3>
+                        <span class="carousel-counter" id="counter-laki">1 / 13</span>
+                    </div>
+
+                    <div class="coverflow-carousel">
+                        <button type="button" class="carousel-nav-btn prev" aria-label="Sebelumnya">
+                            <i class="ph-bold ph-caret-left"></i>
+                        </button>
+
+                        <div class="carousel-stage">
                     <!-- Kartu Anggota 1 (Aditya) -->
                     <div class="chairman-wrapper">
                         <div class="floating-emoji"><span class="emoji-inner">🎙️</span></div>
@@ -601,11 +612,52 @@
                         </div>
                     </div>
 
+                    <!-- Kartu Anggota 14 (Dika Rama) -->
+                    <div class="chairman-wrapper">
+                        <div class="floating-emoji"><span class="emoji-inner">✌🏻</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">👍🏻</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">🙏🏻</span></div> 
+                        <div class="floating-emoji"><span class="emoji-inner">💪🏻</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">🤝🏻</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">🫵🏻</span></div>
+                        <div class="team-card">
+                            <div class="member-img">
+                                <img src="stroge/img/Dika.jpeg" alt="Dika Rama">
+                                <div class="member-socials">
+                                    <a href="https://www.instagram.com/andikaramaaaa_?xtok=dGRuc3c2c2huYTlq"><i class="ph-fill ph-instagram-logo"></i></a>
+                                </div>
+                            </div>
+                            <div class="member-info">
+                                <h3>Dika Rama</h3>
+                                <p>Dokumenter</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- SILAKAN COPY-PASTE KARTU DI ATAS UNTUK ANGGOTA LAKI-LAKI LAINNYA -->
+                        </div>
+
+                        <button type="button" class="carousel-nav-btn next" aria-label="Selanjutnya">
+                            <i class="ph-bold ph-caret-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="carousel-dots" id="dots-laki"></div>
                 </div>
 
-                <h3 class="members-title">Anggota Perempuan</h3>
-                <div class="members-grid">
+                <!-- Karusel 3D Coverflow Anggota Perempuan -->
+                <div class="members-carousel-container" id="carousel-perempuan">
+                    <div class="carousel-header">
+                        <h3 class="members-title">Anggota Perempuan</h3>
+                        <span class="carousel-counter" id="counter-perempuan">1 / 10</span>
+                    </div>
+
+                    <div class="coverflow-carousel">
+                        <button type="button" class="carousel-nav-btn prev" aria-label="Sebelumnya">
+                            <i class="ph-bold ph-caret-left"></i>
+                        </button>
+
+                        <div class="carousel-stage">
                     <!-- Kartu Anggota 1 (Yuna) -->
                     <div class="chairman-wrapper">
                         <div class="floating-emoji"><span class="emoji-inner">🌸</span></div>
@@ -786,7 +838,7 @@
                                 </div>
                             </div>
                             <div class="member-info">
-                                <h3>Adinda Ayudya Maharani</h3>
+                                <h3>Dinda</h3>
                                 <p>Anggota</p>
                             </div>
                         </div>
@@ -814,7 +866,57 @@
                         </div>
                     </div>
 
+                    <!-- Kartu Anggota 10 (Kheizera Prita Fatin Aulia) -->
+                    <div class="chairman-wrapper">
+                        <div class="floating-emoji"><span class="emoji-inner">🍒</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">💗</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">🌸</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">😻</span></div>
+                        <div class="team-card">
+                            <div class="member-img">
+                                <img src="stroge/img/Kheizera Prita Fatin Aulia.jpeg" alt="Kheizera Prita Fatin Aulia">
+                                <div class="member-socials">
+                                    <a href="https://www.instagram.com/kheizerauliaa/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener" aria-label="Instagram"><i class="ph-fill ph-instagram-logo"></i></a>
+                                </div>
+                            </div>
+                            <div class="member-info">
+                                <h3>Kheizera Prita Fatin Aulia</h3>
+                                <p>Anggota</p>
+                            </div>
+                        </div>
+                    </div>
+
+                     <!-- Kartu Anggota 11 (Syafa Aulia) -->
+                    <div class="chairman-wrapper">
+                        <div class="floating-emoji"><span class="emoji-inner">👀</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">🐹</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">🎹</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">📸</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">⛸️</span></div>
+                        <div class="floating-emoji"><span class="emoji-inner">🎬</span></div>
+                        <div class="team-card">
+                            <div class="member-img">
+                                <img src="stroge/img/sapa.jpeg" alt="Syafa Aulia">
+                                <div class="member-socials">
+                                    <a href="https://www.instagram.com/afflyyz?exln=MWR1NTg1anMwaXh6aQ==" target="_blank" rel="noopener" aria-label="Instagram"><i class="ph-fill ph-instagram-logo"></i></a>
+                                </div>
+                            </div>
+                            <div class="member-info">
+                                <h3>Syafa Aulia</h3>
+                                <p>Anggota</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- SILAKAN COPY-PASTE KARTU DI ATAS UNTUK ANGGOTA PEREMPUAN LAINNYA -->
+                        </div>
+
+                        <button type="button" class="carousel-nav-btn next" aria-label="Selanjutnya">
+                            <i class="ph-bold ph-caret-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="carousel-dots" id="dots-perempuan"></div>
                 </div>
 
             </div>
