@@ -75,20 +75,23 @@ function initEmojiWrapper(id) {
         }
     }
 
-    // Jarak aman keluar dari tepi kartu agar SELURUH emoji terlihat utuh (tidak kepotong tepi kartu)
-    // Radius emoji ~16-18px, kita beri jarak 36px (HP) / 48px (PC) dari tepian kartu
-    const extraOut = isMobile ? 36 : 48;
+    // Jarak aman keluar dari tepi kartu agar SELURUH emoji terlihat utuh
+    const extraOut = isMobile ? 42 : 54;
     const baseX = halfWidth + extraOut;
-    const baseY = isMobile ? 85 : 95;
+    const baseY = isMobile ? 100 : 115;
 
-    // Slot posisi aman di sekeliling foto: [pengali X, pengali Y]
+    // Slot posisi melingkar indah (membentuk mahkota/halo di sekeliling kepala & pundak)
+    // Posisi di bagian atas diberikan prioritas agar emoji terlihat bebas tanpa terhalang kartu lain
     const slots = [
-        [-1.0, -0.85],  // 1. Kiri Atas (dekat bahu/kepala kiri)
-        [-1.04, -0.15], // 2. Kiri Tengah (samping foto kiri)
-        [-1.0, 0.55],   // 3. Kiri Bawah (bawah foto kiri)
-        [1.0, -0.85],   // 4. Kanan Atas (dekat bahu/kepala kanan)
-        [1.04, -0.15],  // 5. Kanan Tengah (samping foto kanan)
-        [1.0, 0.55]     // 6. Kanan Bawah (bawah foto kanan)
+        [-0.55, -1.55], // 1. Atas Kiri Kepala (membubung di atas kepala kiri)
+        [0.0, -1.65],   // 2. Tepat Atas Tengah (membubung di atas kepala tengah)
+        [0.55, -1.55],  // 3. Atas Kanan Kepala (membubung di atas kepala kanan)
+        [-1.02, -0.92], // 4. Kiri Atas Bahu (di samping kepala/bahu kiri)
+        [1.02, -0.92],  // 5. Kanan Atas Bahu (di samping kepala/bahu kanan)
+        [-1.06, -0.15], // 6. Kiri Tengah (samping badan kiri)
+        [1.06, -0.15],  // 7. Kanan Tengah (samping badan kanan)
+        [-1.0, 0.48],   // 8. Kiri Bawah (samping pinggang kiri)
+        [1.0, 0.48]     // 9. Kanan Bawah (samping pinggang kanan)
     ];
 
     // Acak urutan slot agar posisinya dinamis dan natural
@@ -97,9 +100,9 @@ function initEmojiWrapper(id) {
     emojis.forEach((emoji, index) => {
         const slot = slots[index % slots.length];
 
-        // Jitter halus (+/- 4px X, +/- 10px Y) agar posisi natural tapi tetap aman keluar kartu
+        // Jitter halus (+/- 4px X, +/- 8px Y) agar posisi natural tapi tetap aman keluar kartu
         const jitterX = (Math.random() - 0.5) * 8;
-        const jitterY = (Math.random() - 0.5) * 20;
+        const jitterY = (Math.random() - 0.5) * 16;
 
         // Hitung posisi akhir TX dan TY
         const tx = (slot[0] * baseX) + jitterX;
@@ -108,8 +111,8 @@ function initEmojiWrapper(id) {
         emoji.style.setProperty('--tx', tx + 'px');
         emoji.style.setProperty('--ty', ty + 'px');
 
-        // Ukuran proporsional agar tampil tajam dan estetik
-        const baseSize = isMobile ? 1.5 : 2.0;
+        // Ukuran proporsional lebih besar agar terlihat jelas, tajam, dan mencolok
+        const baseSize = isMobile ? 1.8 : 2.5;
         const randSize = isMobile ? 0.3 : 0.4;
 
         emoji.style.fontSize = (Math.random() * randSize + baseSize) + 'rem';
@@ -155,6 +158,7 @@ function setupCardNeighborShifting() {
 
         // 1. Mouse Masuk (Hover): geser kartu sebelah kiri ke kiri, kartu kanan ke kanan
         wrapper.addEventListener('mouseenter', () => {
+            wrapper.classList.remove('emoji-hidden');
             const parent = wrapper.parentElement;
             if (!parent) return;
             updateShifts(parent, wrapper);
@@ -162,6 +166,7 @@ function setupCardNeighborShifting() {
 
         // 2. Mouse Keluar: jika ada kartu yang sedang aktif (diklik), pertahankan posisi geser kartu aktif
         wrapper.addEventListener('mouseleave', () => {
+            wrapper.classList.remove('emoji-hidden');
             const parent = wrapper.parentElement;
             if (!parent) return;
 
@@ -173,7 +178,7 @@ function setupCardNeighborShifting() {
             }
         });
 
-        // 3. Klik/Sentuh (untuk Desktop & Layar Sentuh Smartphone/Tablet)
+        // 3. Klik/Sentuh (untuk Desktop & Layar Sentuh Smartphone/Tablet) - Toggle EMOJI IN / OUT
         wrapper.addEventListener('click', (e) => {
             // Jika user mengklik link sosial media, jangan ubah status aktif kartu
             if (e.target.closest('.member-socials') || e.target.closest('a')) return;
@@ -181,19 +186,23 @@ function setupCardNeighborShifting() {
             const parent = wrapper.parentElement;
             if (!parent) return;
 
-            const wasActive = wrapper.classList.contains('active');
+            const isCurrentlyOut = wrapper.classList.contains('active') && !wrapper.classList.contains('emoji-hidden');
 
             // Reset kartu lain di seluruh pengurus agar fokus ke kartu yang baru diklik
             document.querySelectorAll('.team-hierarchy .chairman-wrapper').forEach(other => {
                 if (other !== wrapper) {
-                    other.classList.remove('active', 'shift-left', 'shift-right');
+                    other.classList.remove('active', 'shift-left', 'shift-right', 'emoji-hidden');
                 }
             });
 
-            if (wasActive) {
+            if (isCurrentlyOut) {
+                // EMOJI MASUK (IN)
                 wrapper.classList.remove('active');
+                wrapper.classList.add('emoji-hidden');
                 updateShifts(parent, null);
             } else {
+                // EMOJI KELUAR (OUT)
+                wrapper.classList.remove('emoji-hidden');
                 wrapper.classList.add('active');
                 updateShifts(parent, wrapper);
             }
@@ -277,9 +286,9 @@ function initCoverflowCarousel(containerId) {
         const isMobile = window.innerWidth <= 768;
         const isTablet = window.innerWidth <= 1024 && window.innerWidth > 768;
 
-        const stepX = isMobile ? 150 : (isTablet ? 195 : 240);
-        const step2X = isMobile ? 245 : (isTablet ? 340 : 425);
-        const step3X = isMobile ? 320 : (isTablet ? 470 : 590);
+        const stepX = isMobile ? 190 : (isTablet ? 265 : 340);
+        const step2X = isMobile ? 285 : (isTablet ? 420 : 540);
+        const step3X = isMobile ? 370 : (isTablet ? 560 : 720);
 
         cards.forEach((card, i) => {
             let diff = i - currentIndex;
@@ -292,23 +301,23 @@ function initCoverflowCarousel(containerId) {
             if (diff === 0) {
                 // Kartu Tengah (Utama / Spotlight)
                 card.classList.add('active', 'is-center');
-                card.style.transform = 'translate(-50%, -50%) scale(1.05) translateZ(60px)';
+                card.style.transform = 'translate(-50%, -50%) scale(1.06) translateZ(60px)';
                 card.style.opacity = '1';
-                card.style.zIndex = '15';
+                card.style.zIndex = '20';
                 card.style.filter = 'none';
                 card.style.pointerEvents = 'auto';
                 card.style.visibility = 'visible';
             } else if (Math.abs(diff) === 1) {
-                // Kartu Tetangga Sebelah Kiri / Kanan
+                // Kartu Tetangga Sebelah Kiri / Kanan (Meredup & Memberikan Ruang untuk Emoji)
                 card.classList.add('is-neighbor');
                 const sign = diff > 0 ? 1 : -1;
                 const x = sign * stepX;
                 const rotateY = sign * (isMobile ? -14 : -20);
-                const scale = isMobile ? 0.78 : 0.85;
+                const scale = isMobile ? 0.74 : 0.82;
                 card.style.transform = `translate(calc(-50% + ${x}px), -50%) scale(${scale}) rotateY(${rotateY}deg)`;
-                card.style.opacity = isMobile ? '0.55' : '0.68';
-                card.style.zIndex = '10';
-                card.style.filter = 'brightness(0.85)';
+                card.style.opacity = isMobile ? '0.45' : '0.62';
+                card.style.zIndex = '8';
+                card.style.filter = 'brightness(0.68) saturate(0.85)';
                 card.style.pointerEvents = 'auto';
                 card.style.visibility = 'visible';
             } else if (Math.abs(diff) === 2) {
@@ -316,11 +325,11 @@ function initCoverflowCarousel(containerId) {
                 const sign = diff > 0 ? 1 : -1;
                 const x = sign * step2X;
                 const rotateY = sign * (isMobile ? -22 : -28);
-                const scale = isMobile ? 0.62 : 0.72;
+                const scale = isMobile ? 0.6 : 0.7;
                 card.style.transform = `translate(calc(-50% + ${x}px), -50%) scale(${scale}) rotateY(${rotateY}deg)`;
-                card.style.opacity = isMobile ? '0.2' : '0.4';
-                card.style.zIndex = '5';
-                card.style.filter = 'brightness(0.65)';
+                card.style.opacity = isMobile ? '0.18' : '0.35';
+                card.style.zIndex = '4';
+                card.style.filter = 'brightness(0.5) saturate(0.7)';
                 card.style.pointerEvents = isMobile ? 'none' : 'auto';
                 card.style.visibility = 'visible';
             } else if (Math.abs(diff) === 3 && !isMobile) {
@@ -368,6 +377,7 @@ function initCoverflowCarousel(containerId) {
     function goToIndex(index) {
         currentIndex = ((index % total) + total) % total;
         container.dataset.currentIndex = currentIndex;
+        cards.forEach(card => card.classList.remove('emoji-hidden'));
         render();
     }
 
@@ -471,7 +481,7 @@ function initCoverflowCarousel(containerId) {
             }, 60);
         });
 
-        // Klik kartu sebelah untuk geser ke tengah
+        // Klik kartu: Geser kartu samping ke tengah, atau Toggle Emoji (In / Out) pada kartu tengah
         cards.forEach((card, i) => {
             card.addEventListener('click', (e) => {
                 if (hasDragged || hasSwiped) return;
@@ -479,6 +489,17 @@ function initCoverflowCarousel(containerId) {
                 const current = parseInt(container.dataset.currentIndex || '0', 10);
                 if (i !== current) {
                     goToIndex(i);
+                } else {
+                    // Kartu tengah: Toggle Emoji In / Out saat diklik
+                    if (card.classList.contains('emoji-hidden')) {
+                        // Munculkan emoji kembali (OUT)
+                        card.classList.remove('emoji-hidden');
+                        card.classList.add('active');
+                    } else {
+                        // Tarik emoji masuk ke belakang kartu (IN)
+                        card.classList.add('emoji-hidden');
+                        card.classList.remove('active');
+                    }
                 }
             });
         });
